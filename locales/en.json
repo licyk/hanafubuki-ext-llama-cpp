@@ -1,0 +1,64 @@
+{
+  "type": {
+    "name": "llama.cpp server",
+    "description": "Runs llama.cpp's llama-server with its chat page: a GGUF model from Hugging Face, a file, or a folder of models to pick from."
+  },
+  "components": {
+    "core": "llama.cpp",
+    "models": "Models"
+  },
+  "parameters": {
+    "version": "Version",
+    "versionHelp": "`latest`, or a release tag such as b12287. Update installs the newest release when this is `latest`.",
+    "variant": "Build",
+    "variantHelp": "The llama.cpp build for your hardware. Only the builds published for this platform can be installed.",
+    "modelSource": "Model",
+    "modelSourceHelp": "Where the server's model comes from.",
+    "hfRepo": "Hugging Face repository",
+    "hfRepoHelp": "owner/name, e.g. ggml-org/gemma-3-1b-it-GGUF. The file is downloaded into the Models folder at install.",
+    "hfFile": "Model file",
+    "hfFileHelp": "The .gguf file's path in the repository, e.g. gemma-3-1b-it-Q4_K_M.gguf. For a split model, the first part.",
+    "model": "Model file",
+    "modelHelp": "A .gguf file on this computer.",
+    "contextSize": "Context size",
+    "contextSizeHelp": "Tokens of context (--ctx-size). 0 takes the model's own, which can need a lot of memory.",
+    "gpuLayers": "GPU layers",
+    "gpuLayersHelp": "Layers offloaded to the GPU (--gpu-layers). Empty lets llama.cpp choose.",
+    "extraArgs": "Extra arguments",
+    "extraArgsHelp": "More llama-server arguments, split as a shell would, e.g. --jinja --flash-attn on. --host and --port are set by Hanafubuki."
+  },
+  "variants": {
+    "cpu": "CPU (macOS: Metal)",
+    "cuda12": "NVIDIA CUDA 12",
+    "cuda13": "NVIDIA CUDA 13",
+    "vulkan": "Vulkan",
+    "rocm": "AMD ROCm",
+    "sycl": "Intel SYCL",
+    "openvino": "Intel OpenVINO",
+    "metal": "Apple Metal (macOS)"
+  },
+  "modelSources": {
+    "directory": "Models folder: pick one on the server's page",
+    "huggingface": "Download from Hugging Face",
+    "file": "A file on this computer"
+  },
+  "settings": {
+    "githubMirror": "GitHub mirrors",
+    "githubMirrorHelp": "How release downloads use the GitHub mirrors of sd-webui-all-in-one.",
+    "huggingfaceMirror": "Hugging Face mirror",
+    "huggingfaceMirrorHelp": "How model downloads use hf-mirror.com.",
+    "auto": "When the direct download fails",
+    "always": "First",
+    "off": "Never"
+  },
+  "status": {
+    "title": "llama.cpp",
+    "install": "Installation",
+    "models": "Models",
+    "name": "File",
+    "size": "Size",
+    "modified": "Modified",
+    "actions": "Updates",
+    "check": "Check for updates"
+  }
+}

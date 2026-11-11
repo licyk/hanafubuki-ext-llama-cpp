@@ -1,0 +1,74 @@
+[
+  {
+    "key": "githubMirror",
+    "kind": "select",
+    "label": {
+      "kind": "key",
+      "key": "ext.io.github.licyk.llama-cpp.settings.githubMirror"
+    },
+    "help": {
+      "kind": "key",
+      "key": "ext.io.github.licyk.llama-cpp.settings.githubMirrorHelp"
+    },
+    "options": [
+      {
+        "value": "auto",
+        "label": {
+          "kind": "key",
+          "key": "ext.io.github.licyk.llama-cpp.settings.auto"
+        }
+      },
+      {
+        "value": "always",
+        "label": {
+          "kind": "key",
+          "key": "ext.io.github.licyk.llama-cpp.settings.always"
+        }
+      },
+      {
+        "value": "off",
+        "label": {
+          "kind": "key",
+          "key": "ext.io.github.licyk.llama-cpp.settings.off"
+        }
+      }
+    ],
+    "default": "auto"
+  },
+  {
+    "key": "huggingfaceMirror",
+    "kind": "select",
+    "label": {
+      "kind": "key",
+      "key": "ext.io.github.licyk.llama-cpp.settings.huggingfaceMirror"
+    },
+    "help": {
+      "kind": "key",
+      "key": "ext.io.github.licyk.llama-cpp.settings.huggingfaceMirrorHelp"
+    },
+    "options": [
+      {
+        "value": "auto",
+        "label": {
+          "kind": "key",
+          "key": "ext.io.github.licyk.llama-cpp.settings.auto"
+        }
+      },
+      {
+        "value": "always",
+        "label": {
+          "kind": "key",
+          "key": "ext.io.github.licyk.llama-cpp.settings.always"
+        }
+      },
+      {
+        "value": "off",
+        "label": {
+          "kind": "key",
+          "key": "ext.io.github.licyk.llama-cpp.settings.off"
+        }
+      }
+    ],
+    "default": "auto"
+  }
+]

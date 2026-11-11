@@ -1,0 +1,65 @@
+{
+  "id": "status",
+  "title": {
+    "kind": "key",
+    "key": "ext.io.github.licyk.llama-cpp.status.title"
+  },
+  "blocks": [
+    {
+      "kind": "info",
+      "id": "install",
+      "title": {
+        "kind": "key",
+        "key": "ext.io.github.licyk.llama-cpp.status.install"
+      }
+    },
+    {
+      "kind": "table",
+      "id": "models",
+      "title": {
+        "kind": "key",
+        "key": "ext.io.github.licyk.llama-cpp.status.models"
+      },
+      "columns": [
+        {
+          "key": "name",
+          "label": {
+            "kind": "key",
+            "key": "ext.io.github.licyk.llama-cpp.status.name"
+          }
+        },
+        {
+          "key": "size",
+          "label": {
+            "kind": "key",
+            "key": "ext.io.github.licyk.llama-cpp.status.size"
+          }
+        },
+        {
+          "key": "modified",
+          "label": {
+            "kind": "key",
+            "key": "ext.io.github.licyk.llama-cpp.status.modified"
+          }
+        }
+      ]
+    },
+    {
+      "kind": "actions",
+      "id": "updates",
+      "title": {
+        "kind": "key",
+        "key": "ext.io.github.licyk.llama-cpp.status.actions"
+      },
+      "actions": [
+        {
+          "id": "check",
+          "label": {
+            "kind": "key",
+            "key": "ext.io.github.licyk.llama-cpp.status.check"
+          }
+        }
+      ]
+    }
+  ]
+}

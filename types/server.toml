@@ -1,0 +1,129 @@
+# The llama.cpp server type. Its backend (backend/main.py) plans the install
+# (scripts/install.py on the managed Python) and the `ui` role's command; this
+# file holds what is static.
+name = "server"
+provider = "backend"
+displayName = { key = "ext.io.github.licyk.llama-cpp.type.name" }
+description = { key = "ext.io.github.licyk.llama-cpp.type.description" }
+preview = "images/preview.png"
+components = [
+  { name = "core", label = { key = "ext.io.github.licyk.llama-cpp.components.core" } },
+  { name = "models", label = { key = "ext.io.github.licyk.llama-cpp.components.models" } },
+]
+runtime = { kind = "none" }
+
+# The release's programs (llama-cli, llama-quantize, ...) in the terminal, and
+# `-hf` downloads made there land in the models folder.
+[environment]
+path = ["{component.core}"]
+vars = { LLAMA_CACHE = "{component.models}" }
+
+[[install.parameters]]
+name = "version"
+kind = "text"
+label = { key = "ext.io.github.licyk.llama-cpp.parameters.version" }
+help = { key = "ext.io.github.licyk.llama-cpp.parameters.versionHelp" }
+default = "latest"
+
+[[install.parameters]]
+name = "variant"
+kind = "select"
+label = { key = "ext.io.github.licyk.llama-cpp.parameters.variant" }
+help = { key = "ext.io.github.licyk.llama-cpp.parameters.variantHelp" }
+default = "cpu"
+options = [
+  { value = "cpu", label = { key = "ext.io.github.licyk.llama-cpp.variants.cpu" } },
+  { value = "cuda-12", label = { key = "ext.io.github.licyk.llama-cpp.variants.cuda12" } },
+  { value = "cuda-13", label = { key = "ext.io.github.licyk.llama-cpp.variants.cuda13" } },
+  { value = "vulkan", label = { key = "ext.io.github.licyk.llama-cpp.variants.vulkan" } },
+  { value = "rocm", label = { key = "ext.io.github.licyk.llama-cpp.variants.rocm" } },
+  { value = "sycl", label = { key = "ext.io.github.licyk.llama-cpp.variants.sycl" } },
+  { value = "openvino", label = { key = "ext.io.github.licyk.llama-cpp.variants.openvino" } },
+  { value = "metal", label = { key = "ext.io.github.licyk.llama-cpp.variants.metal" } },
+]
+
+[[install.parameters]]
+name = "modelSource"
+kind = "select"
+label = { key = "ext.io.github.licyk.llama-cpp.parameters.modelSource" }
+help = { key = "ext.io.github.licyk.llama-cpp.parameters.modelSourceHelp" }
+default = "directory"
+options = [
+  { value = "directory", label = { key = "ext.io.github.licyk.llama-cpp.modelSources.directory" } },
+  { value = "huggingface", label = { key = "ext.io.github.licyk.llama-cpp.modelSources.huggingface" } },
+  { value = "file", label = { key = "ext.io.github.licyk.llama-cpp.modelSources.file" } },
+]
+
+[[install.parameters]]
+name = "hfRepo"
+kind = "text"
+label = { key = "ext.io.github.licyk.llama-cpp.parameters.hfRepo" }
+help = { key = "ext.io.github.licyk.llama-cpp.parameters.hfRepoHelp" }
+visibleWhen = { key = "modelSource", equals = "huggingface" }
+requiredWhen = { key = "modelSource", equals = "huggingface" }
+
+[[install.parameters]]
+name = "hfFile"
+kind = "text"
+label = { key = "ext.io.github.licyk.llama-cpp.parameters.hfFile" }
+help = { key = "ext.io.github.licyk.llama-cpp.parameters.hfFileHelp" }
+visibleWhen = { key = "modelSource", equals = "huggingface" }
+requiredWhen = { key = "modelSource", equals = "huggingface" }
+
+[[install.parameters]]
+name = "model"
+kind = "path"
+path = "file"
+label = { key = "ext.io.github.licyk.llama-cpp.parameters.model" }
+help = { key = "ext.io.github.licyk.llama-cpp.parameters.modelHelp" }
+visibleWhen = { key = "modelSource", equals = "file" }
+requiredWhen = { key = "modelSource", equals = "file" }
+
+[[install.parameters]]
+name = "contextSize"
+kind = "number"
+label = { key = "ext.io.github.licyk.llama-cpp.parameters.contextSize" }
+help = { key = "ext.io.github.licyk.llama-cpp.parameters.contextSizeHelp" }
+default = 4096
+min = 0
+step = 1
+advanced = true
+
+[[install.parameters]]
+name = "gpuLayers"
+kind = "number"
+label = { key = "ext.io.github.licyk.llama-cpp.parameters.gpuLayers" }
+help = { key = "ext.io.github.licyk.llama-cpp.parameters.gpuLayersHelp" }
+min = 0
+step = 1
+advanced = true
+
+[[install.parameters]]
+name = "extraArgs"
+kind = "text"
+label = { key = "ext.io.github.licyk.llama-cpp.parameters.extraArgs" }
+help = { key = "ext.io.github.licyk.llama-cpp.parameters.extraArgsHelp" }
+advanced = true
+
+[management]
+operations = ["update", "terminal", "check-update"]
+
+[[servers]]
+role = "ui"
+port = { allocate = true }
+# Loading a large model from disk can take minutes.
+readiness = { http = "/health", timeoutSeconds = 600 }
+restart = "on-failure"
+webview = true
+
+# An instance in this layout, found again (moved, or the application
+# reinstalled): the parameters' defaults, since the build is not read here.
+[[discovery]]
+markers = ["core/llama-server", "models"]
+components = { core = "core", models = "models" }
+values = { version = "latest" }
+
+[[discovery]]
+markers = ["core/llama-server.exe", "models"]
+components = { core = "core", models = "models" }
+values = { version = "latest" }

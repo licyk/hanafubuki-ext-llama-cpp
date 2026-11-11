@@ -1,0 +1,64 @@
+{
+  "type": {
+    "name": "llama.cpp 服务器",
+    "description": "运行 llama.cpp 的 llama-server 及其聊天页面：模型可来自 Hugging Face、本地文件，或在模型文件夹中选择。"
+  },
+  "components": {
+    "core": "llama.cpp",
+    "models": "模型"
+  },
+  "parameters": {
+    "version": "版本",
+    "versionHelp": "`latest`，或发布标签，如 b12287。为 `latest` 时，更新会安装最新发布版本。",
+    "variant": "构建",
+    "variantHelp": "适合你硬件的 llama.cpp 构建。只能安装此平台已发布的构建。",
+    "modelSource": "模型",
+    "modelSourceHelp": "服务器模型的来源。",
+    "hfRepo": "Hugging Face 仓库",
+    "hfRepoHelp": "owner/name，如 ggml-org/gemma-3-1b-it-GGUF。安装时下载到模型文件夹。",
+    "hfFile": "模型文件",
+    "hfFileHelp": "仓库中 .gguf 文件的路径，如 gemma-3-1b-it-Q4_K_M.gguf。分卷模型填第一卷。",
+    "model": "模型文件",
+    "modelHelp": "本机上的 .gguf 文件。",
+    "contextSize": "上下文长度",
+    "contextSizeHelp": "上下文的 token 数（--ctx-size）。0 表示使用模型自身的长度，可能需要大量内存。",
+    "gpuLayers": "GPU 层数",
+    "gpuLayersHelp": "卸载到 GPU 的层数（--gpu-layers）。留空由 llama.cpp 自动选择。",
+    "extraArgs": "额外参数",
+    "extraArgsHelp": "更多 llama-server 参数，按 shell 规则拆分，如 --jinja --flash-attn on。--host 和 --port 由 Hanafubuki 设置。"
+  },
+  "variants": {
+    "cpu": "CPU（macOS：Metal）",
+    "cuda12": "NVIDIA CUDA 12",
+    "cuda13": "NVIDIA CUDA 13",
+    "vulkan": "Vulkan",
+    "rocm": "AMD ROCm",
+    "sycl": "Intel SYCL",
+    "openvino": "Intel OpenVINO",
+    "metal": "Apple Metal（macOS）"
+  },
+  "modelSources": {
+    "directory": "模型文件夹：在服务器页面中选择",
+    "huggingface": "从 Hugging Face 下载",
+    "file": "本机上的文件"
+  },
+  "settings": {
+    "githubMirror": "GitHub 镜像",
+    "githubMirrorHelp": "下载发布文件时如何使用 sd-webui-all-in-one 的 GitHub 镜像。",
+    "huggingfaceMirror": "Hugging Face 镜像",
+    "huggingfaceMirrorHelp": "下载模型时如何使用 hf-mirror.com。",
+    "auto": "直接下载失败时",
+    "always": "优先使用",
+    "off": "不使用"
+  },
+  "status": {
+    "title": "llama.cpp",
+    "install": "安装",
+    "models": "模型",
+    "name": "文件",
+    "size": "大小",
+    "modified": "修改时间",
+    "actions": "更新",
+    "check": "检查更新"
+  }
+}
