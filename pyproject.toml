@@ -1,0 +1,25 @@
+# Development tooling only: the extension is not a Python distribution.
+[project]
+name = "hanafubuki-ext-llama-cpp"
+version = "0.1.0"
+requires-python = ">=3.10"
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "SIM", "RUF"]
+# The backend's Chinese strings use full-width punctuation on purpose.
+ignore = ["RUF001"]
+
+# The development tools (tests, scripts/package.py) need 3.11's tomllib; what
+# ships stays 3.10-compatible, which ruff's target checks.
+# The SDK and sd-webui-all-in-one are found in sibling checkouts, as the tests
+# find them by default.
+[tool.ty.environment]
+python-version = "3.11"
+extra-paths = ["tests", "scripts", "../Hanafubuki-dev/sdk/python", "../sd-webui-all-in-one"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
