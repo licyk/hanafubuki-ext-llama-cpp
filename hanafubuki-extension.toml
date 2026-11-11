@@ -10,7 +10,7 @@ description = { en = "Install, run and update llama.cpp's llama-server, with its
 # The extension-validation host features: backend-provided types with
 # `{host.python}`, `{extension.root}`, `[environment]`, `terminal`, previews
 # and discovery signatures, and `sdWebuiAllInOne`.
-hanafubuki = ">=0.3.28, <0.4"
+hanafubuki = ">=0.3.29, <0.4"
 api = 1
 
 [backend]
