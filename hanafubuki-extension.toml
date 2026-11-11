@@ -15,8 +15,9 @@ api = 1
 
 [backend]
 python = "backend/main.py"
-# The backend runs with sd_webui_all_in_one on its import path, as the
-# install script (a `{host.python}` step) does.
+# sd_webui_all_in_one on the backend's import path, as every extension of the
+# validation plan declares. The backend imports nothing from it today: the
+# library is used by scripts/install.py, a `{host.python}` step.
 sdWebuiAllInOne = true
 
 [permissions]

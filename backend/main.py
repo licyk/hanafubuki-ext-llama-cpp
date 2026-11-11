@@ -80,6 +80,7 @@ class Releases:
     """
 
     TTL_SECONDS = 15 * 60
+    WAIT_SECONDS = 20
 
     def __init__(self, data_dir: Path) -> None:
         """Builds the cache.
@@ -101,12 +102,19 @@ class Releases:
 
         Returns:
             The cached releases, or ``None`` when none were fetched yet.
+
+        Raises:
+            RpcError: Waiting, GitHub did not answer within ``WAIT_SECONDS``.
         """
         if not self._fresh():
+            refresh = threading.Thread(target=self._refresh, args=(host,), daemon=True)
+            refresh.start()
+            # Within the host's 30 s bound for the call that waits: a late
+            # answer leaves the refresh running and says so.
             if wait:
-                self._refresh(host)
-            else:
-                threading.Thread(target=self._refresh, args=(host,), daemon=True).start()
+                refresh.join(self.WAIT_SECONDS)
+                if refresh.is_alive():
+                    raise RpcError(REQUEST_FAILED, "GitHub has not answered yet; try again shortly")
         return self._read()
 
     def _refresh(self, host: Host) -> None:

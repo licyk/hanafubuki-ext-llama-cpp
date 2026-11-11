@@ -1,4 +1,5 @@
-"""The real thing: install the newest CPU build from GitHub and start its server.
+"""The real thing: install the newest CPU build from GitHub, a tiny model from
+Hugging Face, and start the server on it.
 
 Downloads about 25 MB. Runs only with ``LLAMA_CPP_REAL_TEST=1``.
 """
@@ -41,6 +42,10 @@ def test_install_the_latest_build_and_serve_a_folder_of_models(tmp_path):
             str(models),
             "--github-mirror",
             "auto",
+            "--hf-repo",
+            "ggml-org/models",
+            "--hf-file",
+            "tinyllamas/stories260K.gguf",
         ],
         capture_output=True,
         text=True,
@@ -51,6 +56,7 @@ def test_install_the_latest_build_and_serve_a_folder_of_models(tmp_path):
     assert result.returncode == 0, result.stdout + result.stderr
     record = read_record(core)
     assert record is not None and record["tag"].startswith("b")
+    assert (models / "stories260K.gguf").stat().st_size == 1185376
 
     os_name, _ = host_platform()
     with socket.socket() as probe:
@@ -60,7 +66,15 @@ def test_install_the_latest_build_and_serve_a_folder_of_models(tmp_path):
         arg.replace("{component.core}", str(core))
         .replace("{component.models}", str(models))
         .replace("{port}", str(port))
-        for arg in server_argv({"modelSource": "directory", "contextSize": 2048}, os_name)
+        for arg in server_argv(
+            {
+                "modelSource": "huggingface",
+                "hfRepo": "ggml-org/models",
+                "hfFile": "tinyllamas/stories260K.gguf",
+                "contextSize": 256,
+            },
+            os_name,
+        )
     ]
     version = subprocess.run([argv[0], "--version"], capture_output=True, text=True, timeout=60)
     assert record["tag"].removeprefix("b") in version.stdout + version.stderr

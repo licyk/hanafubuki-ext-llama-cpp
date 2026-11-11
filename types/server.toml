@@ -12,8 +12,9 @@ components = [
 ]
 runtime = { kind = "none" }
 
-# The release's programs (llama-cli, llama-quantize, ...) in the terminal, and
-# `-hf` downloads made there land in the models folder.
+# The release's programs (llama-cli, llama-quantize, ...) on the terminal's
+# PATH; `-hf` downloads (the terminal's or the server's) land in the models
+# folder, which the server's router mode lists.
 [environment]
 path = ["{component.core}"]
 vars = { LLAMA_CACHE = "{component.models}" }

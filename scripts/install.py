@@ -219,6 +219,8 @@ def _download(candidates: list[str], directory: Path, name: str, sha256: str | N
                 progress=False,
                 hash_value=sha256,
                 connect_timeout=20,
+                # Few retries per address: the next mirror is the retry.
+                max_tries=2,
                 progress_callback=_Progress(name),
             )
         except Exception as error:

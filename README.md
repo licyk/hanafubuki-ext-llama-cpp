@@ -59,7 +59,10 @@ Turn the extension on; *llama.cpp server* is then in the install page.
 **Choosing "latest".** Every llama.cpp release is marked a prerelease, so
 GitHub's "latest release" is never one of them, and a release's files are
 uploaded for a while after it is published. *Latest* is the newest `bNNNN`
-release that already holds the build for this platform and variant.
+release that already holds the build for this platform and variant. The archives
+of every platform hold the programs and their libraries in one folder
+(Linux and macOS inside a `llama-<tag>/` folder, Windows at the root); the
+script promotes the folder holding `llama-server`.
 
 **Why a schema panel, not a frame.** What the section shows is a few facts
 and a table, which Hanafubuki renders natively, themed and localized, with
