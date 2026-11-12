@@ -25,10 +25,12 @@ up to date.
 
 ## Requirements
 
-- Hanafubuki 0.3.29 or later (below 0.4), with the extension-validation host
-  features: types an extension's backend provides with `{host.python}`,
-  `{extension.root}` and `[environment]`, the declarative terminal, preview
-  images, discovery signatures, and `sdWebuiAllInOne` for Python backends.
+- Hanafubuki 0.3.30 or later (below 0.4): types an extension's backend
+  provides with `{host.python}`, `{extension.root}` and `[environment]`, the
+  declarative terminal, preview images, discovery signatures,
+  `sdWebuiAllInOne` for Python backends, and the component map a backend's
+  operation is given (the `check-update` operation reads `core` where the
+  instance has it).
 - Nothing else: the backend and the install script run on Hanafubuki's
   managed Python, and llama.cpp's builds need no installation. A GPU build
   needs the GPU's driver (and for ROCm, SYCL or OpenVINO their runtimes).
@@ -169,4 +171,4 @@ GPL-3.0-only.
 - **更新**：在实例的维护中运行“更新”；版本为 `latest` 时安装最新发布版本。实例管理中的 *llama.cpp* 面板显示已安装构建、最新版本与模型列表。
 - **终端**：llama.cpp 的程序在 `PATH` 上；**发现**：含 `core/llama-server` 与 `models` 的文件夹可被实例发现导入。
 
-需要 Hanafubuki 0.3.29 及以上（低于 0.4）。可通过“设置 > 扩展”安装打包文件，或以开发链接方式链接本仓库文件夹（文件夹内不能有符号链接）。打包：`python scripts/package.py`。
+需要 Hanafubuki 0.3.30 及以上（低于 0.4）。可通过“设置 > 扩展”安装打包文件，或以开发链接方式链接本仓库文件夹（文件夹内不能有符号链接）。打包：`python scripts/package.py`。

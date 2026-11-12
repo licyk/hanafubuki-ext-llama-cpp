@@ -251,9 +251,17 @@ def test_the_status_panel_and_the_update_check(host, instance):
             "label": "Status",
             "value": "b12289 is available: run Update in Maintenance",
         } in rows
+        components = {
+            "core": {"path": str(instance / "core"), "external": False},
+            "models": {"path": str(instance / "models"), "external": False},
+        }
         operation = host.call(
             "provider.manage.check-update",
-            {"type": TYPE, "operation": "check-update", "instance": {"id": "i1"}},
+            {
+                "type": TYPE,
+                "operation": "check-update",
+                "instance": {"id": "i1", "components": components},
+            },
         )
         assert operation["result"]["notice"] == notice
     fetches = [call for call in host.calls if call[0] == "download.fetch"]
@@ -283,3 +291,29 @@ def test_the_releases_cache_is_written_in_the_data_directory(host, tmp_path, ins
     )
     cached = json.loads((tmp_path / "data" / "cache" / "releases.json").read_text())
     assert cached[0]["tag_name"] == "b12289"
+
+
+def test_the_operation_reads_core_where_the_host_says_it_is(host, tmp_path):
+    # A `core` the user moved out of the root: the operation follows the component map.
+    core = tmp_path / "elsewhere" / "core"
+    core.mkdir(parents=True)
+    write_record(core, {"tag": "b12289", "variant": "cpu"})
+    components = {
+        "core": {"path": str(core), "external": False},
+        "models": {"path": str(tmp_path / "models"), "external": False},
+    }
+    answer = host.call(
+        "provider.manage.check-update",
+        {
+            "type": TYPE,
+            "operation": "check-update",
+            "instance": {"id": "i1", "components": components},
+        },
+    )
+    assert "b12289" in answer["result"]["notice"]
+    assert "not installed" not in answer["result"]["notice"]
+    missing = host.call(
+        "provider.manage.check-update",
+        {"type": TYPE, "operation": "check-update", "instance": {"id": "i1"}},
+    )
+    assert missing["error"]["code"] == -32602

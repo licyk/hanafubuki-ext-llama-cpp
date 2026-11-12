@@ -51,7 +51,7 @@ def test_the_manifest():
     data = manifest()
     assert data["id"] == "io.github.licyk.llama-cpp"
     assert re.match(r"^\d+\.\d+\.\d+$", data["version"])
-    assert data["engines"] == {"hanafubuki": ">=0.3.29, <0.4", "api": 1}
+    assert data["engines"] == {"hanafubuki": ">=0.3.30, <0.4", "api": 1}
     assert data["backend"] == {"python": "backend/main.py", "sdWebuiAllInOne": True}
     assert data["permissions"]["instances"] == "own-types"
     contributes = data["contributes"]

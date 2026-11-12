@@ -281,7 +281,7 @@ class Backend(Handler):
         """
         if operation != "check-update":
             raise RpcError(INVALID_PARAMS, f"the type has no operation `{operation}`")
-        return self._update_notice(host, str(instance.get("id", "")))
+        return self._update_notice(host, _component(instance, "core"))
 
     def panel_query(
         self, host: Host, panel: str, block: str, context: dict[str, Any]
@@ -343,11 +343,12 @@ class Backend(Handler):
         """
         if panel != PANEL or action != "check":
             raise RpcError(INVALID_PARAMS, f"no action `{action}` in `{panel}`")
-        return self._update_notice(host, str(context.get("instanceId", "")))
+        root = self._instance_root(host, str(context.get("instanceId", "")))
+        return self._update_notice(host, root / "core")
 
-    def _update_notice(self, host: Host, instance_id: str) -> str:
+    def _update_notice(self, host: Host, core: Path) -> str:
         text = _strings(host)
-        record = read_record(self._instance_root(host, instance_id) / "core")
+        record = read_record(core)
         if record is None:
             return text["noticeNone"]
         latest = self._latest(host, record, wait=True)
@@ -395,12 +396,26 @@ class Backend(Handler):
             return None
 
     def _instance_root(self, host: Host, instance_id: str) -> Path:
-        # `own-types` reads its instances through `instances.ofType`; an
-        # instance's components are `<root>/core` and `<root>/models`.
+        # A panel's context names the instance only, and `instances.ofType`
+        # gives its root: a panel reads the components where the instance
+        # creates them, `<root>/core` and `<root>/models`. An operation is
+        # given the components themselves (`_component`).
         for instance in host.call("instances.ofType", {"type": TYPE}).get("instances", []):
             if instance.get("id") == instance_id:
                 return Path(str(instance.get("path", "")))
         raise RpcError(INVALID_PARAMS, f"no instance `{instance_id}` of {TYPE}")
+
+
+def _component(instance: dict[str, Any], name: str) -> Path:
+    """Where the host says the instance's component ``name`` is.
+
+    Raises:
+        RpcError: The instance names no such component.
+    """
+    found = (instance.get("components") or {}).get(name)
+    if not isinstance(found, dict) or not isinstance(found.get("path"), str) or not found["path"]:
+        raise RpcError(INVALID_PARAMS, f"the instance has no `{name}` component")
+    return Path(found["path"])
 
 
 def _newer(latest: str, installed: Any) -> bool:
