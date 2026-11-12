@@ -25,13 +25,13 @@ up to date.
 
 ## Requirements
 
-- Hanafubuki 0.3.31 or later (below 0.4): types an extension's backend
+- Hanafubuki 0.3.32 or later (below 0.4): types an extension's backend
   provides with `{host.python}`, `{extension.root}` and `[environment]`, the
   declarative terminal, preview images, discovery signatures,
   `sdWebuiAllInOne` for Python backends, and the component map of an
   instance (the `check-update` operation and the status panel read `core`
   and `models` where the instance has them, a models folder of yours
-  included).
+  included), and `[update]`.
 - Nothing else: the backend and the install script run on Hanafubuki's
   managed Python, and llama.cpp's builds need no installation. A GPU build
   needs the GPU's driver (and for ROCm, SYCL or OpenVINO their runtimes).
@@ -39,13 +39,29 @@ up to date.
 ## Installing the extension
 
 - **From an archive**: in Settings > Extensions, install
-  `io.github.licyk.llama-cpp-<version>.zip` (see [Packaging](#packaging)).
+  `io.github.licyk.llama-cpp-<version>.zip` from a
+  [release](https://github.com/licyk/hanafubuki-ext-llama-cpp/releases) (or
+  its URL), or one you built (see [Packaging](#packaging)).
 - **As a development link**: in Settings > Extensions, link a clone of this
   repository (the repository's root is the package). Hanafubuki reads the folder in place; after a
   change, press the extension's Reload. A linked folder may hold no
   symbolic link, so keep virtual environments and `node_modules` out of it.
 
 Turn the extension on; *llama.cpp server* is then in the install page.
+
+## Updates
+
+The manifest's `[update] url` is the newest GitHub release's `latest.json`
+(`https://github.com/licyk/hanafubuki-ext-llama-cpp/releases/latest/download/latest.json`).
+Hanafubuki reads it once a day and on **Check for Updates**, and offers
+**Update to <version>** on the extension's card when a release is newer than
+the installed one; it never installs one by itself. A development link is
+never checked. Versions before 0.1.3 name no update source: install 0.1.3
+once by hand. (This is the extension's own update; llama.cpp itself is
+updated from each instance's Maintenance section.)
+
+The extension has no frame of its own: its status panel is a schema panel,
+which Hanafubuki draws with its own components, so it already looks native.
 
 ## How it works
 
@@ -148,12 +164,28 @@ python -m ty check --python "$(command -v python)" .
 ## Packaging
 
 ```sh
-python scripts/package.py      # writes dist/io.github.licyk.llama-cpp-<version>.zip
+python scripts/package.py      # writes dist/io.github.licyk.llama-cpp-<version>.zip and dist/latest.json
 ```
 
 The archive holds the package only (the manifest, `backend`, `scripts/install.py`,
 `hanafubuki_llama`, `types`, `ui`, `schemas`, `locales`, `images`, the README
 and the license), not the tests, tools or development files.
+
+`latest.json` beside it has one entry (`platform` and `architecture` `any`: the
+package is Python and data; llama.cpp's native builds are downloaded by the
+install script, for the instance's system, at install time) whose
+`download_url` is the archive as the release `v<version>` publishes it and
+whose `sha256` is the archive's. A release:
+
+```sh
+python scripts/package.py
+git tag v<version> && git push origin v<version>
+gh release create v<version> dist/io.github.licyk.llama-cpp-<version>.zip dist/latest.json
+```
+
+Upload the files the script just wrote: a rebuilt archive has another SHA-256.
+Do not mark the release a draft or a pre-release, or `releases/latest` keeps
+serving the previous one.
 
 ## License
 
@@ -172,4 +204,6 @@ GPL-3.0-only.
 - **更新**：在实例的维护中运行“更新”；版本为 `latest` 时安装最新发布版本。实例管理中的 *llama.cpp* 面板显示已安装构建、最新版本与模型列表。
 - **终端**：llama.cpp 的程序在 `PATH` 上；**发现**：含 `core/llama-server` 与 `models` 的文件夹可被实例发现导入。
 
-需要 Hanafubuki 0.3.31 及以上（低于 0.4）。可通过“设置 > 扩展”安装打包文件，或以开发链接方式链接本仓库文件夹（文件夹内不能有符号链接）。打包：`python scripts/package.py`。
+需要 Hanafubuki 0.3.32 及以上（低于 0.4）。可通过“设置 > 扩展”安装 Release 中的打包文件，或以开发链接方式链接本仓库文件夹（文件夹内不能有符号链接）。
+
+**扩展更新**：清单的 `[update] url` 指向最新 GitHub Release 的 `latest.json`。Hanafubuki 每天及点击“检查更新”时读取它，有新版本时在扩展卡片上提供更新，但不会自动安装；开发链接不检查更新。0.1.3 之前的版本没有更新源，需手动安装一次 0.1.3。打包：`python scripts/package.py` 生成安装包和 `latest.json`，发布时将两者一起上传到 Release `v<version>`。

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import hashlib
 import json
 import re
 import struct
@@ -20,6 +21,7 @@ sys.path.insert(0, str(ROOT / "scripts"))
 import package
 
 PREFIX = "ext.io.github.licyk.llama-cpp."
+RELEASES = "https://github.com/licyk/hanafubuki-ext-llama-cpp/releases"
 
 
 def manifest() -> dict:
@@ -51,7 +53,8 @@ def test_the_manifest():
     data = manifest()
     assert data["id"] == "io.github.licyk.llama-cpp"
     assert re.match(r"^\d+\.\d+\.\d+$", data["version"])
-    assert data["engines"] == {"hanafubuki": ">=0.3.31, <0.4", "api": 1}
+    assert data["engines"] == {"hanafubuki": ">=0.3.32, <0.4", "api": 1}
+    assert data["update"] == {"url": f"{RELEASES}/latest/download/latest.json"}
     assert data["backend"] == {"python": "backend/main.py", "sdWebuiAllInOne": True}
     assert data["permissions"]["instances"] == "own-types"
     contributes = data["contributes"]
@@ -136,6 +139,25 @@ def test_the_archive_holds_the_package_only(tmp_path):
         assert "__pycache__" not in name
     assert "scripts/package.py" not in names
     assert "pyproject.toml" not in names
+
+
+def test_latest_json_offers_the_archive_as_its_release_publishes_it(tmp_path):
+    archive = package.build(tmp_path)
+    version = manifest()["version"]
+    assert json.loads((tmp_path / "latest.json").read_text("utf-8")) == [
+        {
+            "version": version,
+            "download_url": f"{RELEASES}/download/v{version}/{archive.name}",
+            "sha256": hashlib.sha256(archive.read_bytes()).hexdigest(),
+            "platform": "any",
+            "architecture": "any",
+        }
+    ]
+
+
+def test_latest_json_needs_a_github_release_source():
+    with pytest.raises(ValueError):
+        package.latest(Path("x.zip"), "1.0.0", "https://example.com/latest.json")
 
 
 def test_package_files_are_the_repository_files_that_ship():

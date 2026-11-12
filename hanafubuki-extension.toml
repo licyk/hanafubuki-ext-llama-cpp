@@ -1,7 +1,7 @@
 schema = 1
 id = "io.github.licyk.llama-cpp"
 name = "llama.cpp"
-version = "0.1.2"
+version = "0.1.3"
 publisher = "licyk"
 license = "GPL-3.0-only"
 description = { en = "Install, run and update llama.cpp's llama-server, with its chat page in Hanafubuki.", zh = "安装、运行和更新 llama.cpp 的 llama-server，并在 Hanafubuki 中打开其聊天页面。" }
@@ -10,9 +10,16 @@ description = { en = "Install, run and update llama.cpp's llama-server, with its
 # Backend-provided types with `{host.python}`, `{extension.root}`,
 # `[environment]`, `terminal`, previews and discovery signatures, and
 # `sdWebuiAllInOne`; 0.3.30: the component map an operation is given;
-# 0.3.31: the component map of each instance `instances.ofType` lists.
-hanafubuki = ">=0.3.31, <0.4"
+# 0.3.31: the component map of each instance `instances.ofType` lists;
+# 0.3.32: `[update]`.
+hanafubuki = ">=0.3.32, <0.4"
 api = 1
+
+# Each release publishes `latest.json` beside its package (scripts/package.py).
+# The package carries no native program: the install script downloads
+# llama.cpp's builds at install time, so one entry serves every system.
+[update]
+url = "https://github.com/licyk/hanafubuki-ext-llama-cpp/releases/latest/download/latest.json"
 
 [backend]
 python = "backend/main.py"
