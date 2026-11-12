@@ -114,6 +114,10 @@ def host(tmp_path, instance):
                         "type": TYPE,
                         "path": str(instance),
                         "running": False,
+                        "components": {
+                            "core": {"path": str(instance / "core"), "external": False},
+                            "models": {"path": str(instance / "models"), "external": False},
+                        },
                     }
                 ]
             },
@@ -317,3 +321,37 @@ def test_the_operation_reads_core_where_the_host_says_it_is(host, tmp_path):
         {"type": TYPE, "operation": "check-update", "instance": {"id": "i1"}},
     )
     assert missing["error"]["code"] == -32602
+
+
+def test_the_panel_reads_the_components_the_host_lists(tmp_path, instance):
+    # `models` a folder of the user's elsewhere: the panel lists that one.
+    mine = tmp_path / "my-models"
+    mine.mkdir()
+    (mine / "c.gguf").write_bytes(b"z")
+    listed = {
+        "id": "i1",
+        "name": "llama",
+        "type": TYPE,
+        "path": str(instance),
+        "running": False,
+        "components": {
+            "core": {"path": str(instance / "core"), "external": False},
+            "models": {"path": str(mine), "external": True},
+        },
+    }
+    data = tmp_path / "data2"
+    data.mkdir()
+    host = Host(data, {"settings.get": {"values": {}}, "instances.ofType": {"instances": [listed]}})
+    host.call(
+        "initialize",
+        {
+            "protocolVersion": 1,
+            "extension": {"id": "io.github.licyk.llama-cpp"},
+            "dataDir": str(data),
+        },
+    )
+    models = host.call(
+        "ui.panel.query", {"panel": "status", "block": "models", "context": {"instanceId": "i1"}}
+    )["result"]["rows"]
+    assert [row["name"] for row in models] == ["c.gguf"]
+    assert host.close() == 0

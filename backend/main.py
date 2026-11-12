@@ -169,13 +169,20 @@ class Backend(Handler):
         self.releases = Releases(Path(str(data)))
         return super().initialize(host, params)
 
-    def validate_spec(self, host: Host, type_id: str, values: dict[str, Any]) -> dict[str, str]:
+    def validate_spec(
+        self,
+        host: Host,
+        type_id: str,
+        values: dict[str, Any],
+        instance: dict[str, Any] | None = None,
+    ) -> dict[str, str]:
         """Checks the values against what llama.cpp builds for this platform.
 
         Args:
             host: The application.
             type_id: The type.
             values: The install parameters.
+            instance: The instance whose values change, when it exists; not read.
 
         Returns:
             Problems by parameter.
@@ -302,9 +309,9 @@ class Backend(Handler):
         """
         if panel != PANEL:
             raise RpcError(INVALID_PARAMS, f"no panel `{panel}`")
-        root = self._instance_root(host, str(context.get("instanceId", "")))
+        instance = self._instance(host, str(context.get("instanceId", "")))
         if block == "install":
-            return {"rows": self._install_rows(host, root)}
+            return {"rows": self._install_rows(host, _component(instance, "core"))}
         if block == "models":
             return {
                 "rows": [
@@ -313,7 +320,7 @@ class Backend(Handler):
                         "size": _size(model.size),
                         "modified": time.strftime("%Y-%m-%d %H:%M", time.localtime(model.modified)),
                     }
-                    for model in list_models(root / "models")
+                    for model in list_models(_component(instance, "models"))
                 ]
             }
         raise RpcError(INVALID_PARAMS, f"no block `{block}`")
@@ -343,8 +350,8 @@ class Backend(Handler):
         """
         if panel != PANEL or action != "check":
             raise RpcError(INVALID_PARAMS, f"no action `{action}` in `{panel}`")
-        root = self._instance_root(host, str(context.get("instanceId", "")))
-        return self._update_notice(host, root / "core")
+        instance = self._instance(host, str(context.get("instanceId", "")))
+        return self._update_notice(host, _component(instance, "core"))
 
     def _update_notice(self, host: Host, core: Path) -> str:
         text = _strings(host)
@@ -360,9 +367,9 @@ class Backend(Handler):
             installed=record.get("tag"), variant=record.get("variant"), latest=latest
         )
 
-    def _install_rows(self, host: Host, root: Path) -> list[dict[str, str]]:
+    def _install_rows(self, host: Host, core: Path) -> list[dict[str, str]]:
         text = _strings(host)
-        record = read_record(root / "core")
+        record = read_record(core)
         if record is None:
             return [{"label": text["version"], "value": text["none"]}]
         latest = self._latest(host, record, wait=False)
@@ -395,19 +402,18 @@ class Backend(Handler):
         except LookupError:
             return None
 
-    def _instance_root(self, host: Host, instance_id: str) -> Path:
-        # A panel's context names the instance only, and `instances.ofType`
-        # gives its root: a panel reads the components where the instance
-        # creates them, `<root>/core` and `<root>/models`. An operation is
-        # given the components themselves (`_component`).
+    def _instance(self, host: Host, instance_id: str) -> dict[str, Any]:
+        # A panel's context names the instance only; `instances.ofType` lists
+        # it with its components (Hanafubuki 0.3.31). `instances.get` would
+        # need `instances = read`, which `own-types` is not.
         for instance in host.call("instances.ofType", {"type": TYPE}).get("instances", []):
             if instance.get("id") == instance_id:
-                return Path(str(instance.get("path", "")))
+                return instance
         raise RpcError(INVALID_PARAMS, f"no instance `{instance_id}` of {TYPE}")
 
 
 def _component(instance: dict[str, Any], name: str) -> Path:
-    """Where the host says the instance's component ``name`` is.
+    """Where the host says the component ``name`` of a provider call's or a listed instance is.
 
     Raises:
         RpcError: The instance names no such component.
