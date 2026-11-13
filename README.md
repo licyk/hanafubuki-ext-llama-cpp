@@ -25,13 +25,13 @@ up to date.
 
 ## Requirements
 
-- Hanafubuki 0.3.32 or later (below 0.4): types an extension's backend
+- Hanafubuki 0.3.35 or later (below 0.4): types an extension's backend
   provides with `{host.python}`, `{extension.root}` and `[environment]`, the
   declarative terminal, preview images, discovery signatures,
   `sdWebuiAllInOne` for Python backends, and the component map of an
-  instance (the `check-update` operation and the status panel read `core`
-  and `models` where the instance has them, a models folder of yours
-  included), and `[update]`.
+  instance (the update check and the status panel read `core` and
+  `models` where the instance has them, a models folder of yours
+  included), `[update]`, and the `update-check` operation.
 - Nothing else: the backend and the install script run on Hanafubuki's
   managed Python, and llama.cpp's builds need no installation. A GPU build
   needs the GPU's driver (and for ROCm, SYCL or OpenVINO their runtimes).
@@ -71,7 +71,8 @@ which Hanafubuki draws with its own components, so it already looks native.
 | Install | The backend's plan (`provider.installPlan`) is two steps: write `models/README.txt`, then run `scripts/install.py` on the managed Python (`{host.python}`), which imports `sd_webui_all_in_one`. The script resolves the release, downloads the build (and the CUDA runtime) into `core/.staging`, checks GitHub's SHA-256, extracts it with `extract_archive`, swaps it in for the previous build, writes `core/.hanafubuki-llama.json`, and downloads the Hugging Face model into `models`. It writes only in `core` and `models`. |
 | Start | The `ui` role runs `core/llama-server --host 127.0.0.1 --port {port}` with the model arguments (`--models-dir models`, or `--model <file>`), `--ctx-size`, `--gpu-layers` and the extra arguments (`provider.launchPlan`). It is ready when `/health` answers (up to 10 minutes, for large models), opens in Hanafubuki's browser, and restarts if it fails. |
 | Update | Maintenance > Update runs the same script. With version `latest` it installs the newest release; a build already installed is not downloaded again. To switch builds or pin a version, update with other values. |
-| Status | The *llama.cpp* section of the instance's management (a schema panel, `ui/status.json`) shows the installed build, the latest release and the models; *Check for updates* asks GitHub now. The `check-update` operation answers the same for the management tools (the Agent, MCP clients). |
+| Status | The *llama.cpp* section of the instance's management (a schema panel, `ui/status.json`) shows the installed build, the latest release and the models; *Check for updates* asks GitHub now. |
+| Update check | The type declares `update-check`, so Hanafubuki's update check (once a day while it is on in Settings, and the instance card's *Check for updates*) asks the backend (`provider.checkUpdate`): the installed build against the release Update would install, the `version` value's (`latest`: the newest that holds the build). An instance pinned to the build it has shows no update. |
 | Terminal | Opens in `core` with it first on `PATH` (`llama-cli`, `llama-quantize`, ...), and `LLAMA_CACHE` set to `models`. |
 | Discover | A folder holding `core/llama-server` (or `.exe`) and `models` is found by Hanafubuki's instance discovery and imported with the default parameters. |
 
@@ -124,7 +125,7 @@ process with the user's rights; the permissions gate only the host API.
 ## Development
 
 ```text
-backend/main.py           the backend (Python SDK): validateSpec, installPlan, launchPlan, the panel, check-update
+backend/main.py           the backend (Python SDK): validateSpec, installPlan, launchPlan, the panel, checkUpdate
 scripts/install.py        the install and update step, on the managed Python with sd_webui_all_in_one
 hanafubuki_llama/         what both share: release selection, the spec checks and the server command, the record
 types/server.toml         the type: components, parameters, environment, operations, server role, discovery

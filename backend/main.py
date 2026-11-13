@@ -2,9 +2,9 @@
 
 It plans the ``io.github.licyk.llama-cpp:server`` type (the install step that
 runs ``scripts/install.py``, the ``llama-server`` command), checks its values
-for this platform, and answers the instance's status panel and its
-``check-update`` operation. It never writes into an instance: the host runs
-the plan's steps under the instance's permits.
+for this platform, and answers the instance's status panel and the
+application's update check (``provider.checkUpdate``). It never writes into
+an instance: the host runs the plan's steps under the instance's permits.
 """
 
 from __future__ import annotations
@@ -149,7 +149,7 @@ class Releases:
 
 
 class Backend(Handler):
-    """The type's provider, its status panel and its ``check-update`` operation."""
+    """The type's provider, its status panel and its update check."""
 
     def __init__(self) -> None:
         """Builds the backend; the data directory is known once the host initializes it."""
@@ -271,24 +271,38 @@ class Backend(Handler):
             raise RpcError(INVALID_PARAMS, f"the type has no server role `{role}`")
         return {"argv": server_argv(values, rel.host_platform()[0]), "env": {}}
 
-    def manage(self, host: Host, type_id: str, operation: str, instance: dict[str, Any]) -> str:
-        """``check-update``: whether a newer release exists for the installed build.
+    def check_update(
+        self, host: Host, type_id: str, values: dict[str, Any], instance: dict[str, Any]
+    ) -> dict[str, Any]:
+        """``provider.checkUpdate``: the installed build and the one Update would install.
+
+        Update installs the ``version`` value's release (``latest``: the
+        newest that holds the build), so an instance pinned to the build it
+        has has none.
 
         Args:
             host: The application.
             type_id: The type.
-            operation: The operation.
+            values: The install parameters.
             instance: The instance.
 
         Returns:
-            The notice.
+            ``current``, ``latest`` and ``hasUpdate``.
 
         Raises:
-            RpcError: Another operation.
+            RpcError: Nothing is installed, or the releases cannot be read.
         """
-        if operation != "check-update":
-            raise RpcError(INVALID_PARAMS, f"the type has no operation `{operation}`")
-        return self._update_notice(host, _component(instance, "core"))
+        record = read_record(_component(instance, "core"))
+        if record is None:
+            raise RpcError(REQUEST_FAILED, _strings(host)["noticeNone"])
+        wanted = str(values.get("version") or "latest")
+        variant = str(values.get("variant") or record.get("variant") or "cpu")
+        target = self._release(host, variant, wanted, wait=True)
+        if target is None:
+            raise RpcError(REQUEST_FAILED, f"cannot read llama.cpp's releases: {self._error()}")
+        installed = str(record.get("tag", ""))
+        changes = _newer(target, installed) if wanted == "latest" else target != installed
+        return {"current": installed, "latest": target, "hasUpdate": changes}
 
     def panel_query(
         self, host: Host, panel: str, block: str, context: dict[str, Any]
@@ -358,10 +372,9 @@ class Backend(Handler):
         record = read_record(core)
         if record is None:
             return text["noticeNone"]
-        latest = self._latest(host, record, wait=True)
+        latest = self._release(host, str(record.get("variant")), "latest", wait=True)
         if latest is None:
-            error = self.releases.error if self.releases else None
-            raise RpcError(REQUEST_FAILED, f"cannot read llama.cpp's releases: {error}")
+            raise RpcError(REQUEST_FAILED, f"cannot read llama.cpp's releases: {self._error()}")
         key = "noticeNew" if _newer(latest, record.get("tag")) else "notice"
         return text[key].format(
             installed=record.get("tag"), variant=record.get("variant"), latest=latest
@@ -372,7 +385,7 @@ class Backend(Handler):
         record = read_record(core)
         if record is None:
             return [{"label": text["version"], "value": text["none"]}]
-        latest = self._latest(host, record, wait=False)
+        latest = self._release(host, str(record.get("variant")), "latest", wait=False)
         if latest is not None:
             status = (
                 text["available"].format(tag=latest)
@@ -392,15 +405,18 @@ class Backend(Handler):
             {"label": text["status"], "value": status},
         ]
 
-    def _latest(self, host: Host, record: dict[str, Any], wait: bool) -> str | None:
+    def _release(self, host: Host, variant: str, version: str, wait: bool) -> str | None:
         found = self.releases.get(host, wait) if self.releases else None
         if found is None:
             return None
         os_name, arch = rel.host_platform()
         try:
-            return rel.select(found, os_name, arch, str(record.get("variant")), "latest").tag
+            return rel.select(found, os_name, arch, variant, version).tag
         except LookupError:
             return None
+
+    def _error(self) -> str | None:
+        return self.releases.error if self.releases else None
 
     def _instance(self, host: Host, instance_id: str) -> dict[str, Any]:
         # A panel's context names the instance only; `instances.ofType` lists

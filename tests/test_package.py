@@ -53,7 +53,7 @@ def test_the_manifest():
     data = manifest()
     assert data["id"] == "io.github.licyk.llama-cpp"
     assert re.match(r"^\d+\.\d+\.\d+$", data["version"])
-    assert data["engines"] == {"hanafubuki": ">=0.3.32, <0.4", "api": 1}
+    assert data["engines"] == {"hanafubuki": ">=0.3.35, <0.4", "api": 1}
     assert data["update"] == {"url": f"{RELEASES}/latest/download/latest.json"}
     assert data["backend"] == {"python": "backend/main.py", "sdWebuiAllInOne": True}
     assert data["permissions"]["instances"] == "own-types"
@@ -73,7 +73,7 @@ def test_the_type():
     assert data["provider"] == "backend"
     assert "steps" not in data.get("install", {})
     assert [component["name"] for component in data["components"]] == ["core", "models"]
-    assert data["management"]["operations"] == ["update", "terminal", "check-update"]
+    assert data["management"]["operations"] == ["update", "terminal", "update-check"]
     (server,) = data["servers"]
     assert server["readiness"] == {"http": "/health", "timeoutSeconds": 600}
     assert "command" not in server

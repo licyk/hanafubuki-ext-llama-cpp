@@ -107,7 +107,9 @@ help = { key = "ext.io.github.licyk.llama-cpp.parameters.extraArgsHelp" }
 advanced = true
 
 [management]
-operations = ["update", "terminal", "check-update"]
+# `update-check`: the application's update check (daily, and the card's
+# button) asks the backend (`provider.checkUpdate`).
+operations = ["update", "terminal", "update-check"]
 
 [[servers]]
 role = "ui"

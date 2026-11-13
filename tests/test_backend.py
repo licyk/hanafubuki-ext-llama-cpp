@@ -259,15 +259,11 @@ def test_the_status_panel_and_the_update_check(host, instance):
             "core": {"path": str(instance / "core"), "external": False},
             "models": {"path": str(instance / "models"), "external": False},
         }
-        operation = host.call(
-            "provider.manage.check-update",
-            {
-                "type": TYPE,
-                "operation": "check-update",
-                "instance": {"id": "i1", "components": components},
-            },
+        checked = host.call(
+            "provider.checkUpdate",
+            {"type": TYPE, "values": {}, "instance": {"id": "i1", "components": components}},
         )
-        assert operation["result"]["notice"] == notice
+        assert checked["result"] == {"current": "b12284", "latest": "b12289", "hasUpdate": True}
     fetches = [call for call in host.calls if call[0] == "download.fetch"]
     assert len(fetches) == 1
 
@@ -297,8 +293,8 @@ def test_the_releases_cache_is_written_in_the_data_directory(host, tmp_path, ins
     assert cached[0]["tag_name"] == "b12289"
 
 
-def test_the_operation_reads_core_where_the_host_says_it_is(host, tmp_path):
-    # A `core` the user moved out of the root: the operation follows the component map.
+def test_the_update_check_reads_core_where_the_host_says_it_is(host, tmp_path):
+    # A `core` the user moved out of the root: the check follows the component map.
     core = tmp_path / "elsewhere" / "core"
     core.mkdir(parents=True)
     write_record(core, {"tag": "b12289", "variant": "cpu"})
@@ -307,20 +303,47 @@ def test_the_operation_reads_core_where_the_host_says_it_is(host, tmp_path):
         "models": {"path": str(tmp_path / "models"), "external": False},
     }
     answer = host.call(
-        "provider.manage.check-update",
-        {
-            "type": TYPE,
-            "operation": "check-update",
-            "instance": {"id": "i1", "components": components},
-        },
+        "provider.checkUpdate",
+        {"type": TYPE, "values": {}, "instance": {"id": "i1", "components": components}},
     )
-    assert "b12289" in answer["result"]["notice"]
-    assert "not installed" not in answer["result"]["notice"]
+    if host_platform() == ("linux", "x64"):
+        assert answer["result"] == {"current": "b12289", "latest": "b12289", "hasUpdate": False}
     missing = host.call(
-        "provider.manage.check-update",
-        {"type": TYPE, "operation": "check-update", "instance": {"id": "i1"}},
+        "provider.checkUpdate", {"type": TYPE, "values": {}, "instance": {"id": "i1"}}
     )
     assert missing["error"]["code"] == -32602
+
+
+def test_an_instance_pinned_to_its_build_has_no_update(host, instance):
+    write_record(instance / "core", {"tag": "b12284", "variant": "cpu"})
+    components = {
+        "core": {"path": str(instance / "core"), "external": False},
+        "models": {"path": str(instance / "models"), "external": False},
+    }
+
+    def check(values):
+        return host.call(
+            "provider.checkUpdate",
+            {"type": TYPE, "values": values, "instance": {"id": "i1", "components": components}},
+        )
+
+    if host_platform() == ("linux", "x64"):
+        pinned = check({"version": "b12284", "variant": "cpu"})["result"]
+        assert pinned == {"current": "b12284", "latest": "b12284", "hasUpdate": False}
+        other = check({"version": "b12287", "variant": "cpu"})["result"]
+        assert other == {"current": "b12284", "latest": "b12287", "hasUpdate": True}
+
+
+def test_the_update_check_of_an_instance_with_nothing_installed_fails(host, instance):
+    components = {
+        "core": {"path": str(instance / "core"), "external": False},
+        "models": {"path": str(instance / "models"), "external": False},
+    }
+    answer = host.call(
+        "provider.checkUpdate",
+        {"type": TYPE, "values": {}, "instance": {"id": "i1", "components": components}},
+    )
+    assert "not installed" in answer["error"]["message"]
 
 
 def test_the_panel_reads_the_components_the_host_lists(tmp_path, instance):
